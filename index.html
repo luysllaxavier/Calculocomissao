@@ -17,7 +17,7 @@
   <div class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
     <!-- Aviso de Armazenamento -->
     <div id="storageWarning" class="hidden mb-4 bg-amber-100 border border-amber-300 text-amber-950 px-4 py-3 rounded-xl text-xs font-medium">
-      Aviso: O navegador bloqueou o salvamento permanente neste modo de visualização. Os fechamentos ficarão salvos na tela enquanto esta aba estiver aberta.
+      Aviso: O navegador bloqueou o salvamento local neste modo de visualização. Os fechamentos continuam sincronizados com o Firebase enquanto houver conexão.
     </div>
 
     <!-- Cabeçalho -->
@@ -27,7 +27,10 @@
           <h1 class="text-2xl font-bold text-slate-900">Fechamento de Caixa & Comissões</h1>
           <p class="text-sm text-slate-500">Cálculo automático de pratos, outros produtos e 3 tipos de cerveja com fichas</p>
         </div>
-        <div class="no-print">
+        <div class="flex flex-wrap items-center gap-2 no-print">
+          <span id="cloudStatusBadge" class="text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+            Firebase Firestore Ativo
+          </span>
           <button type="button" onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition cursor-pointer">
             Imprimir Resumo
           </button>
@@ -252,7 +255,7 @@
       <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 class="text-lg font-bold text-slate-900">Fechamentos Registrados no Turno</h2>
-          <p id="saveStatusText" class="text-xs text-slate-500">Os dados ficam salvos automaticamente neste navegador</p>
+          <p id="saveStatusText" class="text-xs text-slate-500">Sincronizado com o Firebase Firestore</p>
         </div>
         <div class="flex flex-wrap gap-2 no-print">
           <button type="button" onclick="copyWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition cursor-pointer">
@@ -296,11 +299,50 @@
     </section>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      doc,
+      setDoc,
+      deleteDoc,
+      getDocs,
+      onSnapshot,
+      query,
+      orderBy
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBm6oDU3rvphXangOrr20jO1eNpwv7GeTo",
+      authDomain: "calculocomissao1.firebaseapp.com",
+      projectId: "calculocomissao1",
+      storageBucket: "calculocomissao1.firebasestorage.app",
+      messagingSenderId: "456434888474",
+      appId: "1:456434888474:web:6f2991b7a69aa79c2b62e3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const recordsColRef = collection(db, "fechamentos");
+    const configDocRef = doc(db, "config", "cervejas");
+
     const STORAGE_KEY = 'restaurante_comissoes_3cervejas_v2';
     const CONFIG_KEY = 'restaurante_cervejas_config_v2';
 
     let storageAvailable = true;
+    let records = [];
+
+    function setCloudBadge(text, type = "ok") {
+      const badgeEl = document.getElementById("cloudStatusBadge");
+      if (!badgeEl) return;
+      badgeEl.textContent = text;
+      if (type === "ok") {
+        badgeEl.className = "text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200";
+      } else {
+        badgeEl.className = "text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300";
+      }
+    }
 
     function safeGetStorage(key) {
       try {
@@ -331,7 +373,16 @@
       }
     }
 
-    let records = [];
+    function applyBeerConfigToInputs(savedConfig) {
+      if (!savedConfig) return;
+      document.getElementById('beer1Name').value = savedConfig.beer1Name || 'Cerveja 1';
+      document.getElementById('beer1Price').value = savedConfig.beer1Price ?? '12.00';
+      document.getElementById('beer2Name').value = savedConfig.beer2Name || 'Cerveja 2';
+      document.getElementById('beer2Price').value = savedConfig.beer2Price ?? '10.00';
+      document.getElementById('beer3Name').value = savedConfig.beer3Name || 'Cerveja 3';
+      document.getElementById('beer3Price').value = savedConfig.beer3Price ?? '8.00';
+    }
+
     try {
       const rawRecords = safeGetStorage(STORAGE_KEY);
       if (rawRecords) {
@@ -345,15 +396,7 @@
     try {
       const rawConfig = safeGetStorage(CONFIG_KEY);
       if (rawConfig) {
-        const savedConfig = JSON.parse(rawConfig);
-        if (savedConfig) {
-          document.getElementById('beer1Name').value = savedConfig.beer1Name || 'Cerveja 1';
-          document.getElementById('beer1Price').value = savedConfig.beer1Price ?? '12.00';
-          document.getElementById('beer2Name').value = savedConfig.beer2Name || 'Cerveja 2';
-          document.getElementById('beer2Price').value = savedConfig.beer2Price ?? '10.00';
-          document.getElementById('beer3Name').value = savedConfig.beer3Name || 'Cerveja 3';
-          document.getElementById('beer3Price').value = savedConfig.beer3Price ?? '8.00';
-        }
+        applyBeerConfigToInputs(JSON.parse(rawConfig));
       }
     } catch (e) {}
 
@@ -417,297 +460,4 @@
         extraBonus += bonus;
         lostComm += discount;
         totalSysBeers += b.sys;
-        totalRecTokens += b.rec;
-        houseBeerComm += houseBase * 0.10;
-
-        return {
-          name: b.name,
-          price: b.price,
-          sys: b.sys,
-          rec: b.rec,
-          diffQty,
-          diffVal,
-          comm,
-          bonus,
-          discount
-        };
-      });
-
-      const diffTokens = totalRecTokens - totalSysBeers;
-      const attendantTotal = baseComm + beerComm + extraBonus;
-      const houseTotal = baseComm + houseBeerComm;
-
-      return {
-        food, other, baseSales, baseComm,
-        beers: beerBreakdown,
-        totalSysBeers, totalRecTokens, diffTokens,
-        beerComm, extraBonus, lostComm,
-        attendantTotal, houseTotal
-      };
-    }
-
-    function updatePreview() {
-      const beers = getBeerConfig();
-      safeSetStorage(CONFIG_KEY, JSON.stringify({
-        beer1Name: beers[0].name,
-        beer1Price: beers[0].price.toFixed(2),
-        beer2Name: beers[1].name,
-        beer2Price: beers[1].price.toFixed(2),
-        beer3Name: beers[2].name,
-        beer3Price: beers[2].price.toFixed(2)
-      }));
-
-      beers.forEach((b, i) => {
-        const idx = i + 1;
-        document.getElementById(`labelBeer${idx}`).textContent = b.name;
-        document.getElementById(`badgeBeer${idx}`).textContent = `${brl(b.price)} / un`;
-      });
-
-      const v = getValues();
-
-      document.getElementById('prevBaseComm').textContent = brl(v.baseComm);
-      document.getElementById('prevBeerComm').textContent = brl(v.beerComm);
-      document.getElementById('prevAttendantTotal').textContent = brl(v.attendantTotal);
-      document.getElementById('prevHouseTotal').textContent = brl(v.houseTotal);
-
-      const detailsBox = document.getElementById('prevBeerDetails');
-      const activeBeers = v.beers.filter(b => b.sys > 0 || b.rec > 0);
-      if (activeBeers.length > 0) {
-        detailsBox.classList.remove('hidden');
-        detailsBox.innerHTML = activeBeers.map(b => {
-          let tag = '<span class="text-slate-400">Exato</span>';
-          if (b.diffQty > 0) {
-            tag = `<span class="text-emerald-400 font-semibold">+${b.diffQty} un (+${brl(b.bonus)})</span>`;
-          } else if (b.diffQty < 0) {
-            tag = `<span class="text-rose-400 font-semibold">${b.diffQty} un (-${brl(b.discount)})</span>`;
-          }
-          return `<div class="flex justify-between items-center">
-            <span>${b.name} (${b.sys} sis / ${b.rec} fic):</span>
-            ${tag}
-          </div>`;
-        }).join('');
-      } else {
-        detailsBox.classList.add('hidden');
-        detailsBox.innerHTML = '';
-      }
-
-      const bonusRow = document.getElementById('prevBonusRow');
-      const discountRow = document.getElementById('prevDiscountRow');
-      const badge = document.getElementById('statusBadge');
-
-      bonusRow.classList.add('hidden');
-      discountRow.classList.add('hidden');
-
-      if (v.extraBonus > 0) {
-        bonusRow.classList.remove('hidden');
-        document.getElementById('prevBonusVal').textContent = `+ ${brl(v.extraBonus)}`;
-      }
-      if (v.lostComm > 0) {
-        discountRow.classList.remove('hidden');
-        document.getElementById('prevDiscountVal').textContent = `- ${brl(v.lostComm)}`;
-      }
-
-      if (v.totalSysBeers === 0 && v.totalRecTokens === 0 && v.baseSales === 0) {
-        badge.textContent = 'Aguardando dados';
-        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300';
-      } else if (v.extraBonus > 0 && v.lostComm > 0) {
-        badge.textContent = 'Sobras e faltas mistas';
-        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300';
-      } else if (v.extraBonus > 0) {
-        badge.textContent = `Sobra de fichas (+${brl(v.extraBonus)})`;
-        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300';
-      } else if (v.lostComm > 0) {
-        badge.textContent = `Falta de fichas (-${brl(v.lostComm)})`;
-        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300';
-      } else {
-        badge.textContent = 'Fichas conferidas (Exato)';
-        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300';
-      }
-    }
-
-    function renderRecords() {
-      const tbody = document.getElementById('recordsTableBody');
-      let sumAttendant = 0;
-      let sumHouse = 0;
-      let sumDiffTokens = 0;
-
-      records.forEach(r => {
-        sumAttendant += Number(r.attendantTotal) || 0;
-        sumHouse += Number(r.houseTotal) || 0;
-        sumDiffTokens += Number(r.diffTokens) || 0;
-      });
-
-      document.getElementById('statCount').textContent = records.length;
-      document.getElementById('statAttendants').textContent = brl(sumAttendant);
-      document.getElementById('statHouse').textContent = brl(sumHouse);
-      const tokenEl = document.getElementById('statTokens');
-      tokenEl.textContent = `${sumDiffTokens > 0 ? '+' : ''}${sumDiffTokens} fichas`;
-      tokenEl.className = `text-2xl font-bold mt-1 ${sumDiffTokens > 0 ? 'text-emerald-600' : sumDiffTokens < 0 ? 'text-rose-600' : 'text-slate-900'}`;
-
-      if (records.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-slate-400">Nenhum fechamento registrado ainda.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = records.map((r, idx) => {
-        const beersList = Array.isArray(r.beers) ? r.beers : [];
-        const beersSummary = beersList
-          .filter(b => b.sys > 0 || b.rec > 0)
-          .map(b => `<div class="text-xs"><span class="font-medium text-slate-700">${b.name}:</span> ${b.sys}/${b.rec}</div>`)
-          .join('') || '<span class="text-xs text-slate-400">Nenhuma</span>';
-
-        const badges = [];
-        if (r.extraBonus > 0) {
-          badges.push(`<span class="inline-block bg-emerald-50 text-emerald-700 font-semibold text-xs px-2 py-0.5 rounded-md">+${brl(r.extraBonus)} sobra</span>`);
-        }
-        if (r.lostComm > 0) {
-          badges.push(`<span class="inline-block bg-rose-50 text-rose-700 font-semibold text-xs px-2 py-0.5 rounded-md">-${brl(r.lostComm)} estorno</span>`);
-        }
-        const adjHtml = badges.length > 0 ? badges.join(' ') : '<span class="text-slate-400 text-xs">Exato</span>';
-
-        return `
-          <tr class="hover:bg-slate-50/80">
-            <td class="py-3.5 px-4 font-semibold text-slate-900">${r.name}</td>
-            <td class="py-3.5 px-4 text-right text-slate-600">${brl(r.baseSales)}</td>
-            <td class="py-3.5 px-4">${beersSummary}</td>
-            <td class="py-3.5 px-4 text-right space-y-1">${adjHtml}</td>
-            <td class="py-3.5 px-4 text-right font-bold text-emerald-700">${brl(r.attendantTotal)}</td>
-            <td class="py-3.5 px-4 text-right font-semibold text-indigo-700">${brl(r.houseTotal)}</td>
-            <td class="py-3.5 px-4 text-center no-print">
-              <button type="button" onclick="deleteRecord(${idx})" class="text-rose-600 hover:text-rose-800 text-xs font-medium cursor-pointer">Excluir</button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    document.getElementById('calcForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const nameInput = document.getElementById('attendantName');
-      const name = nameInput.value.trim();
-      if (!name) {
-        nameInput.focus();
-        return;
-      }
-
-      const v = getValues();
-      records.push({ id: Date.now(), name, ...v });
-      safeSetStorage(STORAGE_KEY, JSON.stringify(records));
-      renderRecords();
-      resetForm();
-
-      const statusText = document.getElementById('saveStatusText');
-      statusText.textContent = `Fechamento de "${name}" registrado com sucesso!`;
-      statusText.className = 'text-xs font-semibold text-emerald-600';
-      setTimeout(() => {
-        statusText.textContent = 'Os dados ficam salvos automaticamente neste navegador';
-        statusText.className = 'text-xs text-slate-500';
-      }, 3500);
-
-      document.getElementById('savedSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
-
-    function resetForm() {
-      document.getElementById('attendantName').value = '';
-      document.getElementById('foodTotal').value = '';
-      document.getElementById('otherTotal').value = '';
-      document.getElementById('sysBeer1').value = '';
-      document.getElementById('recBeer1').value = '';
-      document.getElementById('sysBeer2').value = '';
-      document.getElementById('recBeer2').value = '';
-      document.getElementById('sysBeer3').value = '';
-      document.getElementById('recBeer3').value = '';
-      updatePreview();
-    }
-
-    function deleteRecord(index) {
-      records.splice(index, 1);
-      safeSetStorage(STORAGE_KEY, JSON.stringify(records));
-      renderRecords();
-    }
-
-    function clearAllRecords() {
-      if (records.length === 0) return;
-      if (confirm('Deseja apagar todos os fechamentos deste turno?')) {
-        records = [];
-        safeRemoveStorage(STORAGE_KEY);
-        document.getElementById('whatsappFallbackBox').classList.add('hidden');
-        renderRecords();
-      }
-    }
-
-    function copyWhatsApp() {
-      if (records.length === 0) {
-        alert('Nenhum fechamento registrado para copiar. Salve pelo menos um atendente primeiro.');
-        return;
-      }
-      let totalAtt = 0;
-      let totalHouse = 0;
-      const lines = ['*FECHAMENTO DE COMISSÕES - TURNO*', ''];
-
-      records.forEach(r => {
-        totalAtt += Number(r.attendantTotal) || 0;
-        totalHouse += Number(r.houseTotal) || 0;
-
-        const beersList = Array.isArray(r.beers) ? r.beers : [];
-        const beerParts = beersList
-          .filter(b => b.sys > 0 || b.rec > 0)
-          .map(b => {
-            const st = b.diffQty > 0
-              ? `+${b.diffQty} sobra (+${brl(b.bonus)})`
-              : b.diffQty < 0
-                ? `${b.diffQty} falta (-${brl(b.discount)})`
-                : 'exato';
-            return `${b.name}: ${b.sys} sis / ${b.rec} fic (${st})`;
-          });
-
-        lines.push(`*${r.name}*`);
-        lines.push(`• Comidas/Outros: ${brl(r.baseSales)}`);
-        if (beerParts.length > 0) {
-          lines.push(`• Cervejas: ${beerParts.join(' | ')}`);
-        }
-        lines.push(`• *Atendente: ${brl(r.attendantTotal)}* | Casa: ${brl(r.houseTotal)}`);
-        lines.push('');
-      });
-
-      lines.push('-------------------------');
-      lines.push(`*TOTAL ATENDENTES:* ${brl(totalAtt)}`);
-      lines.push(`*TOTAL CASA:* ${brl(totalHouse)}`);
-
-      const finalText = lines.join('
-');
-      const fallbackBox = document.getElementById('whatsappFallbackBox');
-      const fallbackArea = document.getElementById('whatsappFallbackText');
-      fallbackArea.value = finalText;
-
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(finalText).then(() => {
-          alert('Resumo copiado! Agora é só colar no WhatsApp.');
-        }).catch(() => {
-          fallbackBox.classList.remove('hidden');
-          fallbackArea.select();
-        });
-      } else {
-        fallbackBox.classList.remove('hidden');
-        fallbackArea.select();
-      }
-    }
-
-    [
-      'beer1Name', 'beer1Price', 'beer2Name', 'beer2Price', 'beer3Name', 'beer3Price',
-      'foodTotal', 'otherTotal',
-      'sysBeer1', 'recBeer1', 'sysBeer2', 'recBeer2', 'sysBeer3', 'recBeer3',
-      'houseMinSystem'
-    ].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.addEventListener('input', updatePreview);
-        el.addEventListener('change', updatePreview);
-      }
-    });
-
-    updatePreview();
-    renderRecords();
-  </script>
-</body>
-</html>
+        totalRecTokens += b.
