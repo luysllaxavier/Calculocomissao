@@ -229,7 +229,7 @@
             <div id="prevBeerDetails" class="bg-slate-800/60 rounded-xl p-3 space-y-1.5 text-xs text-slate-300 hidden"></div>
 
             <div id="prevBonusRow" class="flex justify-between text-emerald-400 hidden">
-              <span>+ Comissão Sobras de Fichas (10%):</span>
+              <span>Sobra de Fichas (já inclusa nos 10%):</span>
               <span id="prevBonusVal" class="font-bold">+ R$ 0,00</span>
             </div>
             <div id="prevMissingInfoRow" class="flex justify-between text-rose-300 hidden">
@@ -416,9 +416,8 @@
         const diffQty = b.rec - b.sys;
         const diffVal = diffQty * b.price;
 
-        // 10% sobre as fichas entregues para o atendente
+        // 10% sobre todas as fichas recebidas (já inclui sobras sem duplicar)
         const comm = recVal * 0.10;
-        // 10% sobre a sobra de fichas (nunca 100%)
         const bonus = diffVal > 0 ? diffVal * 0.10 : 0;
 
         // A casa só fica com 10% quando faltam fichas em relação ao sistema (diffQty < 0)
@@ -449,7 +448,8 @@
       });
 
       const diffTokens = totalRecTokens - totalSysBeers;
-      const attendantTotal = baseComm + beerComm + extraBonus;
+      // Sem duplicar a sobra: beerComm já calculou 10% sobre todas as fichas entregues
+      const attendantTotal = baseComm + beerComm;
       const houseTotal = houseBaseComm + houseBeerComm;
 
       return {
@@ -545,7 +545,7 @@
         detailsBox.innerHTML = activeBeers.map(b => {
           let tag = '<span class="text-slate-400">Exato</span>';
           if (b.diffQty > 0) {
-            tag = `<span class="text-emerald-400 font-semibold">+${b.diffQty} un (+${brl(b.bonus)})</span>`;
+            tag = `<span class="text-emerald-400 font-semibold">+${b.diffQty} un (10%: ${brl(b.bonus)})</span>`;
           } else if (b.diffQty < 0) {
             tag = `<span class="text-rose-400 font-semibold">${b.diffQty} un (Casa +${brl(b.beerHouse10)})</span>`;
           }
@@ -709,7 +709,7 @@
           .filter(b => b.sys > 0 || b.rec > 0)
           .map(b => {
             const st = b.diffQty > 0
-              ? `+${b.diffQty} sobra (+${brl(b.bonus)})`
+              ? `+${b.diffQty} sobra (10%: ${brl(b.bonus)})`
               : b.diffQty < 0
                 ? `${b.diffQty} falta (Casa +${brl(b.beerHouse10 || 0)})`
                 : 'exato';
