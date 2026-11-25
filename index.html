@@ -15,21 +15,59 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen font-sans antialiased">
   <div class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+    <!-- Aviso de Armazenamento -->
+    <div id="storageWarning" class="hidden mb-4 bg-amber-100 border border-amber-300 text-amber-950 px-4 py-3 rounded-xl text-xs font-medium">
+      Aviso: O navegador bloqueou o salvamento permanente neste modo de visualização. Os fechamentos ficarão salvos na tela enquanto esta aba estiver aberta.
+    </div>
+
     <!-- Cabeçalho -->
-    <header class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 print-card">
-      <div>
-        <h1 class="text-2xl font-bold text-slate-900">Fechamento de Caixa & Comissões</h1>
-        <p class="text-sm text-slate-500">Cálculo automático de pratos, outros produtos e controle de fichas de cerveja</p>
-      </div>
-      <div class="flex flex-wrap items-center gap-3 no-print">
-        <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 flex items-center gap-2">
-          <label for="beerPrice" class="text-xs font-semibold uppercase tracking-wide text-amber-900">Valor da Cerveja (R$):</label>
-          <input id="beerPrice" type="number" step="0.01" min="0" value="10.00"
-            class="w-24 bg-white border border-amber-300 rounded-lg px-2.5 py-1 text-right font-bold text-amber-950 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+    <header class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6 print-card">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-100">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900">Fechamento de Caixa & Comissões</h1>
+          <p class="text-sm text-slate-500">Cálculo automático de pratos, outros produtos e 3 tipos de cerveja com fichas</p>
         </div>
-        <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition cursor-pointer">
-          Imprimir Resumo
-        </button>
+        <div class="no-print">
+          <button type="button" onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition cursor-pointer">
+            Imprimir Resumo
+          </button>
+        </div>
+      </div>
+
+      <!-- Configuração dos 3 Tipos de Cerveja -->
+      <div class="pt-4">
+        <p class="text-xs font-bold uppercase tracking-wide text-amber-900 mb-2.5">Configuração dos 3 Tipos de Cerveja (Nome e Valor Unitário)</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
+            <input id="beer1Name" type="text" value="Cerveja 1" placeholder="Nome (ex: Heineken)"
+              class="w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            <div class="flex items-center gap-1 shrink-0">
+              <span class="text-xs font-bold text-amber-900">R$</span>
+              <input id="beer1Price" type="number" step="0.01" min="0" value="12.00"
+                class="w-20 bg-white border border-amber-300 rounded-lg px-2 py-1.5 text-right font-bold text-amber-950 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+          </div>
+
+          <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
+            <input id="beer2Name" type="text" value="Cerveja 2" placeholder="Nome (ex: Brahma)"
+              class="w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            <div class="flex items-center gap-1 shrink-0">
+              <span class="text-xs font-bold text-amber-900">R$</span>
+              <input id="beer2Price" type="number" step="0.01" min="0" value="10.00"
+                class="w-20 bg-white border border-amber-300 rounded-lg px-2 py-1.5 text-right font-bold text-amber-950 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+          </div>
+
+          <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
+            <input id="beer3Name" type="text" value="Cerveja 3" placeholder="Nome (ex: Skol)"
+              class="w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            <div class="flex items-center gap-1 shrink-0">
+              <span class="text-xs font-bold text-amber-900">R$</span>
+              <input id="beer3Price" type="number" step="0.01" min="0" value="8.00"
+                class="w-20 bg-white border border-amber-300 rounded-lg px-2 py-1.5 text-right font-bold text-amber-950 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -78,22 +116,70 @@
             </div>
           </div>
 
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-4">
+          <!-- Controle das 3 Cervejas -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
             <div class="flex items-center justify-between">
-              <span class="text-sm font-bold text-slate-800">Controle de Cervejas (Fichas)</span>
-              <span id="beerUnitBadge" class="text-xs font-medium bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full">R$ 10,00 / un</span>
+              <span class="text-sm font-bold text-slate-800">Controle de Cervejas (Sistema x Fichas)</span>
+              <span class="text-xs text-slate-500">Quantidade de unidades</span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label for="sysBeers" class="block text-sm font-medium text-slate-700 mb-1">Qtd. Vendida no Sistema</label>
-                <input id="sysBeers" type="number" step="1" min="0" placeholder="0"
-                  class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <!-- Cerveja 1 -->
+            <div class="bg-white border border-slate-200 rounded-xl p-3">
+              <div class="flex items-center justify-between mb-2">
+                <span id="labelBeer1" class="text-xs font-bold uppercase text-slate-800">Cerveja 1</span>
+                <span id="badgeBeer1" class="text-xs font-semibold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">R$ 12,00 / un</span>
               </div>
-              <div>
-                <label for="recTokens" class="block text-sm font-medium text-slate-700 mb-1">Qtd. Fichas Entregues</label>
-                <input id="recTokens" type="number" step="1" min="0" placeholder="0"
-                  class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="sysBeer1" class="block text-xs text-slate-500 mb-1">Qtd. Sistema</label>
+                  <input id="sysBeer1" type="number" step="1" min="0" placeholder="0"
+                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div>
+                  <label for="recBeer1" class="block text-xs text-slate-500 mb-1">Qtd. Fichas</label>
+                  <input id="recBeer1" type="number" step="1" min="0" placeholder="0"
+                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Cerveja 2 -->
+            <div class="bg-white border border-slate-200 rounded-xl p-3">
+              <div class="flex items-center justify-between mb-2">
+                <span id="labelBeer2" class="text-xs font-bold uppercase text-slate-800">Cerveja 2</span>
+                <span id="badgeBeer2" class="text-xs font-semibold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">R$ 10,00 / un</span>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="sysBeer2" class="block text-xs text-slate-500 mb-1">Qtd. Sistema</label>
+                  <input id="sysBeer2" type="number" step="1" min="0" placeholder="0"
+                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div>
+                  <label for="recBeer2" class="block text-xs text-slate-500 mb-1">Qtd. Fichas</label>
+                  <input id="recBeer2" type="number" step="1" min="0" placeholder="0"
+                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Cerveja 3 -->
+            <div class="bg-white border border-slate-200 rounded-xl p-3">
+              <div class="flex items-center justify-between mb-2">
+                <span id="labelBeer3" class="text-xs font-bold uppercase text-slate-800">Cerveja 3</span>
+                <span id="badgeBeer3" class="text-xs font-semibold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">R$ 8,00 / un</span>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="sysBeer3" class="block text-xs text-slate-500 mb-1">Qtd. Sistema</label>
+                  <input id="sysBeer3" type="number" step="1" min="0" placeholder="0"
+                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div>
+                  <label for="recBeer3" class="block text-xs text-slate-500 mb-1">Qtd. Fichas</label>
+                  <input id="recBeer3" type="number" step="1" min="0" placeholder="0"
+                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
               </div>
             </div>
 
@@ -131,9 +217,13 @@
               <span>Comissão Fichas Cerveja (10%):</span>
               <span id="prevBeerComm" class="font-semibold text-white">R$ 0,00</span>
             </div>
+
+            <!-- Detalhamento por cerveja -->
+            <div id="prevBeerDetails" class="bg-slate-800/60 rounded-xl p-3 space-y-1.5 text-xs text-slate-300 hidden"></div>
+
             <div id="prevBonusRow" class="flex justify-between text-emerald-400 hidden">
-              <span>+ Bônus Diferença Fichas (100%):</span>
-              <span id="prevBonusVal" class="font-bold">R$ 0,00</span>
+              <span>+ Bônus Sobras de Fichas (100%):</span>
+              <span id="prevBonusVal" class="font-bold">+ R$ 0,00</span>
             </div>
             <div id="prevDiscountRow" class="flex justify-between text-rose-400 hidden">
               <span>- Estorno Comissão (Fichas Faltantes):</span>
@@ -158,20 +248,29 @@
     </div>
 
     <!-- Tabela de Fechamentos Salvos -->
-    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden print-card">
+    <section id="savedSection" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden print-card">
       <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 class="text-lg font-bold text-slate-900">Fechamentos Registrados no Turno</h2>
-          <p class="text-xs text-slate-500">Os dados ficam salvos automaticamente neste navegador</p>
+          <p id="saveStatusText" class="text-xs text-slate-500">Os dados ficam salvos automaticamente neste navegador</p>
         </div>
         <div class="flex flex-wrap gap-2 no-print">
-          <button onclick="copyWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition cursor-pointer">
+          <button type="button" onclick="copyWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition cursor-pointer">
             Copiar Resumo WhatsApp
           </button>
-          <button onclick="clearAllRecords()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold px-3.5 py-2 rounded-lg transition cursor-pointer">
+          <button type="button" onclick="clearAllRecords()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold px-3.5 py-2 rounded-lg transition cursor-pointer">
             Zerar Turno
           </button>
         </div>
+      </div>
+
+      <!-- Caixa de texto fallback para cópia manual caso clipboard seja bloqueado -->
+      <div id="whatsappFallbackBox" class="hidden p-4 bg-emerald-50 border-b border-emerald-200 no-print">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-emerald-900">Resumo pronto para copiar e colar no WhatsApp:</span>
+          <button type="button" onclick="document.getElementById('whatsappFallbackBox').classList.add('hidden')" class="text-xs text-emerald-800 underline cursor-pointer">Fechar</button>
+        </div>
+        <textarea id="whatsappFallbackText" rows="6" readonly class="w-full text-xs bg-white border border-emerald-300 rounded-lg p-2.5 text-slate-800 focus:outline-none"></textarea>
       </div>
 
       <div class="overflow-x-auto">
@@ -180,7 +279,7 @@
             <tr class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-200">
               <th class="py-3 px-4">Atendente</th>
               <th class="py-3 px-4 text-right">Comidas + Outros</th>
-              <th class="py-3 px-4 text-center">Cerveja (Sis / Fichas)</th>
+              <th class="py-3 px-4">Cervejas (Sis / Fichas)</th>
               <th class="py-3 px-4 text-right">Ajuste Fichas</th>
               <th class="py-3 px-4 text-right">Total Atendente</th>
               <th class="py-3 px-4 text-right">Total Casa</th>
@@ -198,61 +297,199 @@
   </div>
 
   <script>
-    const STORAGE_KEY = 'restaurante_comissoes_v1';
-    const PRICE_KEY = 'restaurante_cerveja_preco_v1';
+    const STORAGE_KEY = 'restaurante_comissoes_3cervejas_v2';
+    const CONFIG_KEY = 'restaurante_cervejas_config_v2';
 
-    let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    const savedPrice = localStorage.getItem(PRICE_KEY);
-    if (savedPrice) document.getElementById('beerPrice').value = savedPrice;
+    let storageAvailable = true;
 
-    const brl = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    function safeGetStorage(key) {
+      try {
+        return window.localStorage.getItem(key);
+      } catch (e) {
+        storageAvailable = false;
+        return null;
+      }
+    }
+
+    function safeSetStorage(key, value) {
+      try {
+        window.localStorage.setItem(key, value);
+        return true;
+      } catch (e) {
+        storageAvailable = false;
+        const warnEl = document.getElementById('storageWarning');
+        if (warnEl) warnEl.classList.remove('hidden');
+        return false;
+      }
+    }
+
+    function safeRemoveStorage(key) {
+      try {
+        window.localStorage.removeItem(key);
+      } catch (e) {
+        storageAvailable = false;
+      }
+    }
+
+    let records = [];
+    try {
+      const rawRecords = safeGetStorage(STORAGE_KEY);
+      if (rawRecords) {
+        const parsed = JSON.parse(rawRecords);
+        if (Array.isArray(parsed)) records = parsed;
+      }
+    } catch (e) {
+      records = [];
+    }
+
+    try {
+      const rawConfig = safeGetStorage(CONFIG_KEY);
+      if (rawConfig) {
+        const savedConfig = JSON.parse(rawConfig);
+        if (savedConfig) {
+          document.getElementById('beer1Name').value = savedConfig.beer1Name || 'Cerveja 1';
+          document.getElementById('beer1Price').value = savedConfig.beer1Price ?? '12.00';
+          document.getElementById('beer2Name').value = savedConfig.beer2Name || 'Cerveja 2';
+          document.getElementById('beer2Price').value = savedConfig.beer2Price ?? '10.00';
+          document.getElementById('beer3Name').value = savedConfig.beer3Name || 'Cerveja 3';
+          document.getElementById('beer3Price').value = savedConfig.beer3Price ?? '8.00';
+        }
+      }
+    } catch (e) {}
+
+    if (!storageAvailable) {
+      document.getElementById('storageWarning').classList.remove('hidden');
+    }
+
+    const brl = (val) => (Number(val) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    function getBeerConfig() {
+      return [
+        {
+          name: document.getElementById('beer1Name').value.trim() || 'Cerveja 1',
+          price: Math.max(0, parseFloat(document.getElementById('beer1Price').value) || 0),
+          sys: Math.max(0, parseInt(document.getElementById('sysBeer1').value, 10) || 0),
+          rec: Math.max(0, parseInt(document.getElementById('recBeer1').value, 10) || 0)
+        },
+        {
+          name: document.getElementById('beer2Name').value.trim() || 'Cerveja 2',
+          price: Math.max(0, parseFloat(document.getElementById('beer2Price').value) || 0),
+          sys: Math.max(0, parseInt(document.getElementById('sysBeer2').value, 10) || 0),
+          rec: Math.max(0, parseInt(document.getElementById('recBeer2').value, 10) || 0)
+        },
+        {
+          name: document.getElementById('beer3Name').value.trim() || 'Cerveja 3',
+          price: Math.max(0, parseFloat(document.getElementById('beer3Price').value) || 0),
+          sys: Math.max(0, parseInt(document.getElementById('sysBeer3').value, 10) || 0),
+          rec: Math.max(0, parseInt(document.getElementById('recBeer3').value, 10) || 0)
+        }
+      ];
+    }
 
     function getValues() {
-      const beerPrice = Math.max(0, parseFloat(document.getElementById('beerPrice').value) || 0);
+      const beers = getBeerConfig();
       const food = Math.max(0, parseFloat(document.getElementById('foodTotal').value) || 0);
       const other = Math.max(0, parseFloat(document.getElementById('otherTotal').value) || 0);
-      const sysBeers = Math.max(0, parseInt(document.getElementById('sysBeers').value, 10) || 0);
-      const recTokens = Math.max(0, parseInt(document.getElementById('recTokens').value, 10) || 0);
       const houseMinSystem = document.getElementById('houseMinSystem').checked;
 
       const baseSales = food + other;
       const baseComm = baseSales * 0.10;
 
-      const sysBeerVal = sysBeers * beerPrice;
-      const recTokenVal = recTokens * beerPrice;
-      const diffTokens = recTokens - sysBeers;
-      const diffVal = diffTokens * beerPrice;
+      let beerComm = 0;
+      let extraBonus = 0;
+      let lostComm = 0;
+      let totalSysBeers = 0;
+      let totalRecTokens = 0;
+      let houseBeerComm = 0;
 
-      // Comissão do atendente sobre as fichas efetivamente entregues (10%)
-      const beerComm = recTokenVal * 0.10;
-      // Bônus integral se sobrar ficha
-      const extraBonus = diffVal > 0 ? diffVal : 0;
-      // Quanto foi retirado em relação à comissão esperada pelo sistema
-      const lostComm = diffVal < 0 ? Math.abs(diffVal) * 0.10 : 0;
+      const beerBreakdown = beers.map(b => {
+        const sysVal = b.sys * b.price;
+        const recVal = b.rec * b.price;
+        const diffQty = b.rec - b.sys;
+        const diffVal = diffQty * b.price;
 
+        const comm = recVal * 0.10;
+        const bonus = diffVal > 0 ? diffVal : 0;
+        const discount = diffVal < 0 ? Math.abs(diffVal) * 0.10 : 0;
+        const houseBase = houseMinSystem ? Math.max(sysVal, recVal) : recVal;
+
+        beerComm += comm;
+        extraBonus += bonus;
+        lostComm += discount;
+        totalSysBeers += b.sys;
+        totalRecTokens += b.rec;
+        houseBeerComm += houseBase * 0.10;
+
+        return {
+          name: b.name,
+          price: b.price,
+          sys: b.sys,
+          rec: b.rec,
+          diffQty,
+          diffVal,
+          comm,
+          bonus,
+          discount
+        };
+      });
+
+      const diffTokens = totalRecTokens - totalSysBeers;
       const attendantTotal = baseComm + beerComm + extraBonus;
-
-      // Comissão da casa
-      const houseBeerBase = houseMinSystem ? Math.max(sysBeerVal, recTokenVal) : recTokenVal;
-      const houseTotal = baseComm + (houseBeerBase * 0.10);
+      const houseTotal = baseComm + houseBeerComm;
 
       return {
-        beerPrice, food, other, baseSales, baseComm,
-        sysBeers, recTokens, diffTokens, diffVal,
+        food, other, baseSales, baseComm,
+        beers: beerBreakdown,
+        totalSysBeers, totalRecTokens, diffTokens,
         beerComm, extraBonus, lostComm,
         attendantTotal, houseTotal
       };
     }
 
     function updatePreview() {
+      const beers = getBeerConfig();
+      safeSetStorage(CONFIG_KEY, JSON.stringify({
+        beer1Name: beers[0].name,
+        beer1Price: beers[0].price.toFixed(2),
+        beer2Name: beers[1].name,
+        beer2Price: beers[1].price.toFixed(2),
+        beer3Name: beers[2].name,
+        beer3Price: beers[2].price.toFixed(2)
+      }));
+
+      beers.forEach((b, i) => {
+        const idx = i + 1;
+        document.getElementById(`labelBeer${idx}`).textContent = b.name;
+        document.getElementById(`badgeBeer${idx}`).textContent = `${brl(b.price)} / un`;
+      });
+
       const v = getValues();
-      localStorage.setItem(PRICE_KEY, v.beerPrice.toFixed(2));
-      document.getElementById('beerUnitBadge').textContent = `${brl(v.beerPrice)} / un`;
 
       document.getElementById('prevBaseComm').textContent = brl(v.baseComm);
       document.getElementById('prevBeerComm').textContent = brl(v.beerComm);
       document.getElementById('prevAttendantTotal').textContent = brl(v.attendantTotal);
       document.getElementById('prevHouseTotal').textContent = brl(v.houseTotal);
+
+      const detailsBox = document.getElementById('prevBeerDetails');
+      const activeBeers = v.beers.filter(b => b.sys > 0 || b.rec > 0);
+      if (activeBeers.length > 0) {
+        detailsBox.classList.remove('hidden');
+        detailsBox.innerHTML = activeBeers.map(b => {
+          let tag = '<span class="text-slate-400">Exato</span>';
+          if (b.diffQty > 0) {
+            tag = `<span class="text-emerald-400 font-semibold">+${b.diffQty} un (+${brl(b.bonus)})</span>`;
+          } else if (b.diffQty < 0) {
+            tag = `<span class="text-rose-400 font-semibold">${b.diffQty} un (-${brl(b.discount)})</span>`;
+          }
+          return `<div class="flex justify-between items-center">
+            <span>${b.name} (${b.sys} sis / ${b.rec} fic):</span>
+            ${tag}
+          </div>`;
+        }).join('');
+      } else {
+        detailsBox.classList.add('hidden');
+        detailsBox.innerHTML = '';
+      }
 
       const bonusRow = document.getElementById('prevBonusRow');
       const discountRow = document.getElementById('prevDiscountRow');
@@ -261,19 +498,27 @@
       bonusRow.classList.add('hidden');
       discountRow.classList.add('hidden');
 
-      if (v.sysBeers === 0 && v.recTokens === 0 && v.baseSales === 0) {
-        badge.textContent = 'Aguardando dados';
-        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300';
-      } else if (v.diffTokens > 0) {
-        badge.textContent = `Sobrou ${v.diffTokens} ficha(s)`;
-        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300';
+      if (v.extraBonus > 0) {
         bonusRow.classList.remove('hidden');
         document.getElementById('prevBonusVal').textContent = `+ ${brl(v.extraBonus)}`;
-      } else if (v.diffTokens < 0) {
-        badge.textContent = `Faltou ${Math.abs(v.diffTokens)} ficha(s)`;
-        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300';
+      }
+      if (v.lostComm > 0) {
         discountRow.classList.remove('hidden');
         document.getElementById('prevDiscountVal').textContent = `- ${brl(v.lostComm)}`;
+      }
+
+      if (v.totalSysBeers === 0 && v.totalRecTokens === 0 && v.baseSales === 0) {
+        badge.textContent = 'Aguardando dados';
+        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300';
+      } else if (v.extraBonus > 0 && v.lostComm > 0) {
+        badge.textContent = 'Sobras e faltas mistas';
+        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300';
+      } else if (v.extraBonus > 0) {
+        badge.textContent = `Sobra de fichas (+${brl(v.extraBonus)})`;
+        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300';
+      } else if (v.lostComm > 0) {
+        badge.textContent = `Falta de fichas (-${brl(v.lostComm)})`;
+        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300';
       } else {
         badge.textContent = 'Fichas conferidas (Exato)';
         badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300';
@@ -287,9 +532,9 @@
       let sumDiffTokens = 0;
 
       records.forEach(r => {
-        sumAttendant += r.attendantTotal;
-        sumHouse += r.houseTotal;
-        sumDiffTokens += r.diffTokens;
+        sumAttendant += Number(r.attendantTotal) || 0;
+        sumHouse += Number(r.houseTotal) || 0;
+        sumDiffTokens += Number(r.diffTokens) || 0;
       });
 
       document.getElementById('statCount').textContent = records.length;
@@ -305,23 +550,31 @@
       }
 
       tbody.innerHTML = records.map((r, idx) => {
-        let adjBadge = '<span class="text-slate-400 text-xs">Exato</span>';
-        if (r.diffTokens > 0) {
-          adjBadge = `<span class="inline-block bg-emerald-50 text-emerald-700 font-semibold text-xs px-2 py-0.5 rounded-md">+${r.diffTokens} un (+${brl(r.extraBonus)})</span>`;
-        } else if (r.diffTokens < 0) {
-          adjBadge = `<span class="inline-block bg-rose-50 text-rose-700 font-semibold text-xs px-2 py-0.5 rounded-md">${r.diffTokens} un (-${brl(r.lostComm)})</span>`;
+        const beersList = Array.isArray(r.beers) ? r.beers : [];
+        const beersSummary = beersList
+          .filter(b => b.sys > 0 || b.rec > 0)
+          .map(b => `<div class="text-xs"><span class="font-medium text-slate-700">${b.name}:</span> ${b.sys}/${b.rec}</div>`)
+          .join('') || '<span class="text-xs text-slate-400">Nenhuma</span>';
+
+        const badges = [];
+        if (r.extraBonus > 0) {
+          badges.push(`<span class="inline-block bg-emerald-50 text-emerald-700 font-semibold text-xs px-2 py-0.5 rounded-md">+${brl(r.extraBonus)} sobra</span>`);
         }
+        if (r.lostComm > 0) {
+          badges.push(`<span class="inline-block bg-rose-50 text-rose-700 font-semibold text-xs px-2 py-0.5 rounded-md">-${brl(r.lostComm)} estorno</span>`);
+        }
+        const adjHtml = badges.length > 0 ? badges.join(' ') : '<span class="text-slate-400 text-xs">Exato</span>';
 
         return `
           <tr class="hover:bg-slate-50/80">
             <td class="py-3.5 px-4 font-semibold text-slate-900">${r.name}</td>
             <td class="py-3.5 px-4 text-right text-slate-600">${brl(r.baseSales)}</td>
-            <td class="py-3.5 px-4 text-center font-medium text-slate-700">${r.sysBeers} / ${r.recTokens}</td>
-            <td class="py-3.5 px-4 text-right">${adjBadge}</td>
+            <td class="py-3.5 px-4">${beersSummary}</td>
+            <td class="py-3.5 px-4 text-right space-y-1">${adjHtml}</td>
             <td class="py-3.5 px-4 text-right font-bold text-emerald-700">${brl(r.attendantTotal)}</td>
             <td class="py-3.5 px-4 text-right font-semibold text-indigo-700">${brl(r.houseTotal)}</td>
             <td class="py-3.5 px-4 text-center no-print">
-              <button onclick="deleteRecord(${idx})" class="text-rose-600 hover:text-rose-800 text-xs font-medium cursor-pointer">Excluir</button>
+              <button type="button" onclick="deleteRecord(${idx})" class="text-rose-600 hover:text-rose-800 text-xs font-medium cursor-pointer">Excluir</button>
             </td>
           </tr>
         `;
@@ -330,28 +583,46 @@
 
     document.getElementById('calcForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = document.getElementById('attendantName').value.trim();
-      if (!name) return;
+      const nameInput = document.getElementById('attendantName');
+      const name = nameInput.value.trim();
+      if (!name) {
+        nameInput.focus();
+        return;
+      }
 
       const v = getValues();
       records.push({ id: Date.now(), name, ...v });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      safeSetStorage(STORAGE_KEY, JSON.stringify(records));
       renderRecords();
       resetForm();
+
+      const statusText = document.getElementById('saveStatusText');
+      statusText.textContent = `Fechamento de "${name}" registrado com sucesso!`;
+      statusText.className = 'text-xs font-semibold text-emerald-600';
+      setTimeout(() => {
+        statusText.textContent = 'Os dados ficam salvos automaticamente neste navegador';
+        statusText.className = 'text-xs text-slate-500';
+      }, 3500);
+
+      document.getElementById('savedSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
 
     function resetForm() {
       document.getElementById('attendantName').value = '';
       document.getElementById('foodTotal').value = '';
       document.getElementById('otherTotal').value = '';
-      document.getElementById('sysBeers').value = '';
-      document.getElementById('recTokens').value = '';
+      document.getElementById('sysBeer1').value = '';
+      document.getElementById('recBeer1').value = '';
+      document.getElementById('sysBeer2').value = '';
+      document.getElementById('recBeer2').value = '';
+      document.getElementById('sysBeer3').value = '';
+      document.getElementById('recBeer3').value = '';
       updatePreview();
     }
 
     function deleteRecord(index) {
       records.splice(index, 1);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      safeSetStorage(STORAGE_KEY, JSON.stringify(records));
       renderRecords();
     }
 
@@ -359,14 +630,15 @@
       if (records.length === 0) return;
       if (confirm('Deseja apagar todos os fechamentos deste turno?')) {
         records = [];
-        localStorage.removeItem(STORAGE_KEY);
+        safeRemoveStorage(STORAGE_KEY);
+        document.getElementById('whatsappFallbackBox').classList.add('hidden');
         renderRecords();
       }
     }
 
     function copyWhatsApp() {
       if (records.length === 0) {
-        alert('Nenhum fechamento registrado para copiar.');
+        alert('Nenhum fechamento registrado para copiar. Salve pelo menos um atendente primeiro.');
         return;
       }
       let totalAtt = 0;
@@ -374,15 +646,26 @@
       const lines = ['*FECHAMENTO DE COMISSÕES - TURNO*', ''];
 
       records.forEach(r => {
-        totalAtt += r.attendantTotal;
-        totalHouse += r.houseTotal;
-        const diffTxt = r.diffTokens > 0
-          ? `Sobrou ${r.diffTokens} ficha(s) (+${brl(r.extraBonus)})`
-          : r.diffTokens < 0
-            ? `Faltou ${Math.abs(r.diffTokens)} ficha(s) (-${brl(r.lostComm)} com.)`
-            : 'Fichas exatas';
+        totalAtt += Number(r.attendantTotal) || 0;
+        totalHouse += Number(r.houseTotal) || 0;
+
+        const beersList = Array.isArray(r.beers) ? r.beers : [];
+        const beerParts = beersList
+          .filter(b => b.sys > 0 || b.rec > 0)
+          .map(b => {
+            const st = b.diffQty > 0
+              ? `+${b.diffQty} sobra (+${brl(b.bonus)})`
+              : b.diffQty < 0
+                ? `${b.diffQty} falta (-${brl(b.discount)})`
+                : 'exato';
+            return `${b.name}: ${b.sys} sis / ${b.rec} fic (${st})`;
+          });
+
         lines.push(`*${r.name}*`);
-        lines.push(`• Comidas/Outros: ${brl(r.baseSales)} | Cervejas: ${r.sysBeers} sis / ${r.recTokens} fichas (${diffTxt})`);
+        lines.push(`• Comidas/Outros: ${brl(r.baseSales)}`);
+        if (beerParts.length > 0) {
+          lines.push(`• Cervejas: ${beerParts.join(' | ')}`);
+        }
         lines.push(`• *Atendente: ${brl(r.attendantTotal)}* | Casa: ${brl(r.houseTotal)}`);
         lines.push('');
       });
@@ -391,15 +674,36 @@
       lines.push(`*TOTAL ATENDENTES:* ${brl(totalAtt)}`);
       lines.push(`*TOTAL CASA:* ${brl(totalHouse)}`);
 
-      navigator.clipboard.writeText(lines.join('
-')).then(() => {
-        alert('Resumo copiado! Agora é só colar no WhatsApp.');
-      });
+      const finalText = lines.join('
+');
+      const fallbackBox = document.getElementById('whatsappFallbackBox');
+      const fallbackArea = document.getElementById('whatsappFallbackText');
+      fallbackArea.value = finalText;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(finalText).then(() => {
+          alert('Resumo copiado! Agora é só colar no WhatsApp.');
+        }).catch(() => {
+          fallbackBox.classList.remove('hidden');
+          fallbackArea.select();
+        });
+      } else {
+        fallbackBox.classList.remove('hidden');
+        fallbackArea.select();
+      }
     }
 
-    ['beerPrice', 'foodTotal', 'otherTotal', 'sysBeers', 'recTokens', 'houseMinSystem'].forEach(id => {
-      document.getElementById(id).addEventListener('input', updatePreview);
-      document.getElementById(id).addEventListener('change', updatePreview);
+    [
+      'beer1Name', 'beer1Price', 'beer2Name', 'beer2Price', 'beer3Name', 'beer3Price',
+      'foodTotal', 'otherTotal',
+      'sysBeer1', 'recBeer1', 'sysBeer2', 'recBeer2', 'sysBeer3', 'recBeer3',
+      'houseMinSystem'
+    ].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', updatePreview);
+        el.addEventListener('change', updatePreview);
+      }
     });
 
     updatePreview();
