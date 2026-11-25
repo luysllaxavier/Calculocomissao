@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fechamento de Caixa e Comissões</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff !important; color: #000 !important; }
+      .print-card { box-shadow: none !important; border: 1px solid #d1d5db !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen font-sans antialiased">
+  <div class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+    <!-- Cabeçalho -->
+    <header class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 print-card">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900">Fechamento de Caixa & Comissões</h1>
+        <p class="text-sm text-slate-500">Cálculo automático de pratos, outros produtos e controle de fichas de cerveja</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 no-print">
+        <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 flex items-center gap-2">
+          <label for="beerPrice" class="text-xs font-semibold uppercase tracking-wide text-amber-900">Valor da Cerveja (R$):</label>
+          <input id="beerPrice" type="number" step="0.01" min="0" value="10.00"
+            class="w-24 bg-white border border-amber-300 rounded-lg px-2.5 py-1 text-right font-bold text-amber-950 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+        </div>
+        <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition cursor-pointer">
+          Imprimir Resumo
+        </button>
+      </div>
+    </header>
+
+    <!-- Cards de Resumo Geral do Turno -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm print-card">
+        <p class="text-xs font-semibold uppercase text-slate-400">Atendentes Fechados</p>
+        <p id="statCount" class="text-2xl font-bold text-slate-900 mt-1">0</p>
+      </div>
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm print-card">
+        <p class="text-xs font-semibold uppercase text-slate-400">Total a Pagar (Atendentes)</p>
+        <p id="statAttendants" class="text-2xl font-bold text-emerald-600 mt-1">R$ 0,00</p>
+      </div>
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm print-card">
+        <p class="text-xs font-semibold uppercase text-slate-400">Total Comissão da Casa</p>
+        <p id="statHouse" class="text-2xl font-bold text-indigo-600 mt-1">R$ 0,00</p>
+      </div>
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm print-card">
+        <p class="text-xs font-semibold uppercase text-slate-400">Saldo Fichas de Cerveja</p>
+        <p id="statTokens" class="text-2xl font-bold text-slate-900 mt-1">0 fichas</p>
+      </div>
+    </section>
+
+    <!-- Área de Cálculo e Simulação -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 no-print">
+      <!-- Formulário -->
+      <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-bold text-slate-900 mb-4">Lançar Fechamento do Atendente</h2>
+        <form id="calcForm" class="space-y-4">
+          <div>
+            <label for="attendantName" class="block text-sm font-medium text-slate-700 mb-1">Nome do Atendente</label>
+            <input id="attendantName" type="text" placeholder="Ex: João Silva" required
+              class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="foodTotal" class="block text-sm font-medium text-slate-700 mb-1">Comidas e Pratos (R$)</label>
+              <input id="foodTotal" type="number" step="0.01" min="0" placeholder="0,00"
+                class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label for="otherTotal" class="block text-sm font-medium text-slate-700 mb-1">Outros Produtos (R$)</label>
+              <input id="otherTotal" type="number" step="0.01" min="0" placeholder="0,00"
+                class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-bold text-slate-800">Controle de Cervejas (Fichas)</span>
+              <span id="beerUnitBadge" class="text-xs font-medium bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full">R$ 10,00 / un</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="sysBeers" class="block text-sm font-medium text-slate-700 mb-1">Qtd. Vendida no Sistema</label>
+                <input id="sysBeers" type="number" step="1" min="0" placeholder="0"
+                  class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
+              <div>
+                <label for="recTokens" class="block text-sm font-medium text-slate-700 mb-1">Qtd. Fichas Entregues</label>
+                <input id="recTokens" type="number" step="1" min="0" placeholder="0"
+                  class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
+            </div>
+
+            <label class="flex items-center gap-2.5 text-xs text-slate-600 cursor-pointer pt-1">
+              <input id="houseMinSystem" type="checkbox" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+              <span>A casa cobra 10% sobre o sistema mesmo se faltarem fichas (mínimo do sistema)</span>
+            </label>
+          </div>
+
+          <div class="flex flex-wrap gap-3 pt-2">
+            <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-5 rounded-xl shadow-sm transition cursor-pointer">
+              Salvar Fechamento no Turno
+            </button>
+            <button type="button" onclick="resetForm()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-3 px-4 rounded-xl transition cursor-pointer">
+              Limpar Campos
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Preview em Tempo Real -->
+      <div class="lg:col-span-5 bg-slate-900 text-white rounded-2xl shadow-md p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+            <h3 class="text-base font-bold text-slate-100">Prévia do Cálculo</h3>
+            <span id="statusBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300">Aguardando dados</span>
+          </div>
+
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between text-slate-300">
+              <span>Comissão Comidas + Outros (10%):</span>
+              <span id="prevBaseComm" class="font-semibold text-white">R$ 0,00</span>
+            </div>
+            <div class="flex justify-between text-slate-300">
+              <span>Comissão Fichas Cerveja (10%):</span>
+              <span id="prevBeerComm" class="font-semibold text-white">R$ 0,00</span>
+            </div>
+            <div id="prevBonusRow" class="flex justify-between text-emerald-400 hidden">
+              <span>+ Bônus Diferença Fichas (100%):</span>
+              <span id="prevBonusVal" class="font-bold">R$ 0,00</span>
+            </div>
+            <div id="prevDiscountRow" class="flex justify-between text-rose-400 hidden">
+              <span>- Estorno Comissão (Fichas Faltantes):</span>
+              <span id="prevDiscountVal" class="font-bold">- R$ 0,00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-slate-800 space-y-3">
+          <div class="bg-slate-800/80 rounded-xl p-4 flex items-center justify-between">
+            <div>
+              <p class="text-xs uppercase tracking-wider text-slate-400">Total a Pagar ao Atendente</p>
+              <p id="prevAttendantTotal" class="text-3xl font-extrabold text-emerald-400 mt-0.5">R$ 0,00</p>
+            </div>
+          </div>
+          <div class="bg-slate-800/50 rounded-xl px-4 py-3 flex items-center justify-between">
+            <span class="text-xs uppercase tracking-wider text-slate-400">Comissão da Casa (10%)</span>
+            <span id="prevHouseTotal" class="text-lg font-bold text-indigo-300">R$ 0,00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela de Fechamentos Salvos -->
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden print-card">
+      <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Fechamentos Registrados no Turno</h2>
+          <p class="text-xs text-slate-500">Os dados ficam salvos automaticamente neste navegador</p>
+        </div>
+        <div class="flex flex-wrap gap-2 no-print">
+          <button onclick="copyWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition cursor-pointer">
+            Copiar Resumo WhatsApp
+          </button>
+          <button onclick="clearAllRecords()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold px-3.5 py-2 rounded-lg transition cursor-pointer">
+            Zerar Turno
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-200">
+              <th class="py-3 px-4">Atendente</th>
+              <th class="py-3 px-4 text-right">Comidas + Outros</th>
+              <th class="py-3 px-4 text-center">Cerveja (Sis / Fichas)</th>
+              <th class="py-3 px-4 text-right">Ajuste Fichas</th>
+              <th class="py-3 px-4 text-right">Total Atendente</th>
+              <th class="py-3 px-4 text-right">Total Casa</th>
+              <th class="py-3 px-4 text-center no-print">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="recordsTableBody" class="divide-y divide-slate-100">
+            <tr>
+              <td colspan="7" class="py-8 text-center text-slate-400">Nenhum fechamento registrado ainda.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'restaurante_comissoes_v1';
+    const PRICE_KEY = 'restaurante_cerveja_preco_v1';
+
+    let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    const savedPrice = localStorage.getItem(PRICE_KEY);
+    if (savedPrice) document.getElementById('beerPrice').value = savedPrice;
+
+    const brl = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    function getValues() {
+      const beerPrice = Math.max(0, parseFloat(document.getElementById('beerPrice').value) || 0);
+      const food = Math.max(0, parseFloat(document.getElementById('foodTotal').value) || 0);
+      const other = Math.max(0, parseFloat(document.getElementById('otherTotal').value) || 0);
+      const sysBeers = Math.max(0, parseInt(document.getElementById('sysBeers').value, 10) || 0);
+      const recTokens = Math.max(0, parseInt(document.getElementById('recTokens').value, 10) || 0);
+      const houseMinSystem = document.getElementById('houseMinSystem').checked;
+
+      const baseSales = food + other;
+      const baseComm = baseSales * 0.10;
+
+      const sysBeerVal = sysBeers * beerPrice;
+      const recTokenVal = recTokens * beerPrice;
+      const diffTokens = recTokens - sysBeers;
+      const diffVal = diffTokens * beerPrice;
+
+      // Comissão do atendente sobre as fichas efetivamente entregues (10%)
+      const beerComm = recTokenVal * 0.10;
+      // Bônus integral se sobrar ficha
+      const extraBonus = diffVal > 0 ? diffVal : 0;
+      // Quanto foi retirado em relação à comissão esperada pelo sistema
+      const lostComm = diffVal < 0 ? Math.abs(diffVal) * 0.10 : 0;
+
+      const attendantTotal = baseComm + beerComm + extraBonus;
+
+      // Comissão da casa
+      const houseBeerBase = houseMinSystem ? Math.max(sysBeerVal, recTokenVal) : recTokenVal;
+      const houseTotal = baseComm + (houseBeerBase * 0.10);
+
+      return {
+        beerPrice, food, other, baseSales, baseComm,
+        sysBeers, recTokens, diffTokens, diffVal,
+        beerComm, extraBonus, lostComm,
+        attendantTotal, houseTotal
+      };
+    }
+
+    function updatePreview() {
+      const v = getValues();
+      localStorage.setItem(PRICE_KEY, v.beerPrice.toFixed(2));
+      document.getElementById('beerUnitBadge').textContent = `${brl(v.beerPrice)} / un`;
+
+      document.getElementById('prevBaseComm').textContent = brl(v.baseComm);
+      document.getElementById('prevBeerComm').textContent = brl(v.beerComm);
+      document.getElementById('prevAttendantTotal').textContent = brl(v.attendantTotal);
+      document.getElementById('prevHouseTotal').textContent = brl(v.houseTotal);
+
+      const bonusRow = document.getElementById('prevBonusRow');
+      const discountRow = document.getElementById('prevDiscountRow');
+      const badge = document.getElementById('statusBadge');
+
+      bonusRow.classList.add('hidden');
+      discountRow.classList.add('hidden');
+
+      if (v.sysBeers === 0 && v.recTokens === 0 && v.baseSales === 0) {
+        badge.textContent = 'Aguardando dados';
+        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300';
+      } else if (v.diffTokens > 0) {
+        badge.textContent = `Sobrou ${v.diffTokens} ficha(s)`;
+        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300';
+        bonusRow.classList.remove('hidden');
+        document.getElementById('prevBonusVal').textContent = `+ ${brl(v.extraBonus)}`;
+      } else if (v.diffTokens < 0) {
+        badge.textContent = `Faltou ${Math.abs(v.diffTokens)} ficha(s)`;
+        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300';
+        discountRow.classList.remove('hidden');
+        document.getElementById('prevDiscountVal').textContent = `- ${brl(v.lostComm)}`;
+      } else {
+        badge.textContent = 'Fichas conferidas (Exato)';
+        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300';
+      }
+    }
+
+    function renderRecords() {
+      const tbody = document.getElementById('recordsTableBody');
+      let sumAttendant = 0;
+      let sumHouse = 0;
+      let sumDiffTokens = 0;
+
+      records.forEach(r => {
+        sumAttendant += r.attendantTotal;
+        sumHouse += r.houseTotal;
+        sumDiffTokens += r.diffTokens;
+      });
+
+      document.getElementById('statCount').textContent = records.length;
+      document.getElementById('statAttendants').textContent = brl(sumAttendant);
+      document.getElementById('statHouse').textContent = brl(sumHouse);
+      const tokenEl = document.getElementById('statTokens');
+      tokenEl.textContent = `${sumDiffTokens > 0 ? '+' : ''}${sumDiffTokens} fichas`;
+      tokenEl.className = `text-2xl font-bold mt-1 ${sumDiffTokens > 0 ? 'text-emerald-600' : sumDiffTokens < 0 ? 'text-rose-600' : 'text-slate-900'}`;
+
+      if (records.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-slate-400">Nenhum fechamento registrado ainda.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = records.map((r, idx) => {
+        let adjBadge = '<span class="text-slate-400 text-xs">Exato</span>';
+        if (r.diffTokens > 0) {
+          adjBadge = `<span class="inline-block bg-emerald-50 text-emerald-700 font-semibold text-xs px-2 py-0.5 rounded-md">+${r.diffTokens} un (+${brl(r.extraBonus)})</span>`;
+        } else if (r.diffTokens < 0) {
+          adjBadge = `<span class="inline-block bg-rose-50 text-rose-700 font-semibold text-xs px-2 py-0.5 rounded-md">${r.diffTokens} un (-${brl(r.lostComm)})</span>`;
+        }
+
+        return `
+          <tr class="hover:bg-slate-50/80">
+            <td class="py-3.5 px-4 font-semibold text-slate-900">${r.name}</td>
+            <td class="py-3.5 px-4 text-right text-slate-600">${brl(r.baseSales)}</td>
+            <td class="py-3.5 px-4 text-center font-medium text-slate-700">${r.sysBeers} / ${r.recTokens}</td>
+            <td class="py-3.5 px-4 text-right">${adjBadge}</td>
+            <td class="py-3.5 px-4 text-right font-bold text-emerald-700">${brl(r.attendantTotal)}</td>
+            <td class="py-3.5 px-4 text-right font-semibold text-indigo-700">${brl(r.houseTotal)}</td>
+            <td class="py-3.5 px-4 text-center no-print">
+              <button onclick="deleteRecord(${idx})" class="text-rose-600 hover:text-rose-800 text-xs font-medium cursor-pointer">Excluir</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    document.getElementById('calcForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('attendantName').value.trim();
+      if (!name) return;
+
+      const v = getValues();
+      records.push({ id: Date.now(), name, ...v });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      renderRecords();
+      resetForm();
+    });
+
+    function resetForm() {
+      document.getElementById('attendantName').value = '';
+      document.getElementById('foodTotal').value = '';
+      document.getElementById('otherTotal').value = '';
+      document.getElementById('sysBeers').value = '';
+      document.getElementById('recTokens').value = '';
+      updatePreview();
+    }
+
+    function deleteRecord(index) {
+      records.splice(index, 1);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      renderRecords();
+    }
+
+    function clearAllRecords() {
+      if (records.length === 0) return;
+      if (confirm('Deseja apagar todos os fechamentos deste turno?')) {
+        records = [];
+        localStorage.removeItem(STORAGE_KEY);
+        renderRecords();
+      }
+    }
+
+    function copyWhatsApp() {
+      if (records.length === 0) {
+        alert('Nenhum fechamento registrado para copiar.');
+        return;
+      }
+      let totalAtt = 0;
+      let totalHouse = 0;
+      const lines = ['*FECHAMENTO DE COMISSÕES - TURNO*', ''];
+
+      records.forEach(r => {
+        totalAtt += r.attendantTotal;
+        totalHouse += r.houseTotal;
+        const diffTxt = r.diffTokens > 0
+          ? `Sobrou ${r.diffTokens} ficha(s) (+${brl(r.extraBonus)})`
+          : r.diffTokens < 0
+            ? `Faltou ${Math.abs(r.diffTokens)} ficha(s) (-${brl(r.lostComm)} com.)`
+            : 'Fichas exatas';
+        lines.push(`*${r.name}*`);
+        lines.push(`• Comidas/Outros: ${brl(r.baseSales)} | Cervejas: ${r.sysBeers} sis / ${r.recTokens} fichas (${diffTxt})`);
+        lines.push(`• *Atendente: ${brl(r.attendantTotal)}* | Casa: ${brl(r.houseTotal)}`);
+        lines.push('');
+      });
+
+      lines.push('-------------------------');
+      lines.push(`*TOTAL ATENDENTES:* ${brl(totalAtt)}`);
+      lines.push(`*TOTAL CASA:* ${brl(totalHouse)}`);
+
+      navigator.clipboard.writeText(lines.join('
+')).then(() => {
+        alert('Resumo copiado! Agora é só colar no WhatsApp.');
+      });
+    }
+
+    ['beerPrice', 'foodTotal', 'otherTotal', 'sysBeers', 'recTokens', 'houseMinSystem'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updatePreview);
+      document.getElementById(id).addEventListener('change', updatePreview);
+    });
+
+    updatePreview();
+    renderRecords();
+  </script>
+</body>
+</html>
