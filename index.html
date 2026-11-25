@@ -25,7 +25,7 @@
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-100">
         <div>
           <h1 class="text-2xl font-bold text-slate-900">Fechamento de Caixa & Comissões</h1>
-          <p class="text-sm text-slate-500">Cálculo automático de pratos, outros produtos e 3 tipos de cerveja com fichas</p>
+          <p class="text-sm text-slate-500">Cálculo automático de pratos, outros produtos e 3 tipos de cerveja com fichas (base 10%)</p>
         </div>
         <div class="flex flex-wrap items-center gap-2 no-print">
           <span id="cloudStatusBadge" class="text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
@@ -192,7 +192,7 @@
             </label>
 
             <p class="text-xs text-slate-500">
-              A comissão vai toda para o atendente. A casa só fica com 10% quando faltarem fichas em relação ao sistema.
+              Toda a base do cálculo é de 10%. A comissão vai para o atendente e a casa só fica com 10% quando faltam fichas em relação ao sistema.
             </p>
           </div>
 
@@ -229,7 +229,7 @@
             <div id="prevBeerDetails" class="bg-slate-800/60 rounded-xl p-3 space-y-1.5 text-xs text-slate-300 hidden"></div>
 
             <div id="prevBonusRow" class="flex justify-between text-emerald-400 hidden">
-              <span>+ Bônus Sobras de Fichas (100%):</span>
+              <span>+ Comissão Sobras de Fichas (10%):</span>
               <span id="prevBonusVal" class="font-bold">+ R$ 0,00</span>
             </div>
             <div id="prevMissingInfoRow" class="flex justify-between text-rose-300 hidden">
@@ -290,7 +290,7 @@
               <th class="py-3 px-4">Atendente</th>
               <th class="py-3 px-4 text-right">Comidas + Outros</th>
               <th class="py-3 px-4">Cervejas (Sis / Fichas)</th>
-              <th class="py-3 px-4 text-right">Ajuste Fichas</th>
+              <th class="py-3 px-4 text-right">Ajuste Fichas (10%)</th>
               <th class="py-3 px-4 text-right">Total Atendente</th>
               <th class="py-3 px-4 text-right">Total Casa</th>
               <th class="py-3 px-4 text-center no-print">Ações</th>
@@ -399,7 +399,7 @@
 
     function computeFromInputs(beers, food, other, minSystemChecked) {
       const baseSales = food + other;
-      // Toda a comissão de Comidas + Outros vai para o atendente
+      // Toda a base é 10%: comissão de Comidas + Outros vai para o atendente
       const baseComm = baseSales * 0.10;
       const houseBaseComm = 0;
 
@@ -416,9 +416,10 @@
         const diffQty = b.rec - b.sys;
         const diffVal = diffQty * b.price;
 
-        // Comissão vai toda para o atendente
+        // 10% sobre as fichas entregues para o atendente
         const comm = recVal * 0.10;
-        const bonus = diffVal > 0 ? diffVal : 0;
+        // 10% sobre a sobra de fichas (nunca 100%)
+        const bonus = diffVal > 0 ? diffVal * 0.10 : 0;
 
         // A casa só fica com 10% quando faltam fichas em relação ao sistema (diffQty < 0)
         const missingQty = diffQty < 0 ? Math.abs(diffQty) : 0;
@@ -627,7 +628,7 @@
 
         const badges = [];
         if (r.extraBonus > 0) {
-          badges.push(`<span class="inline-block bg-emerald-50 text-emerald-700 font-semibold text-xs px-2 py-0.5 rounded-md">+${brl(r.extraBonus)} sobra</span>`);
+          badges.push(`<span class="inline-block bg-emerald-50 text-emerald-700 font-semibold text-xs px-2 py-0.5 rounded-md">+${brl(r.extraBonus)} sobra (10%)</span>`);
         }
         if ((r.houseBeerComm || 0) > 0) {
           badges.push(`<span class="inline-block bg-rose-50 text-rose-700 font-semibold text-xs px-2 py-0.5 rounded-md">Casa +${brl(r.houseBeerComm)}</span>`);
